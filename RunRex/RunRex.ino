@@ -49,6 +49,8 @@ void setup(){
 
 	Serial.println("");
 	Serial.println("Rex is awake...");
+	angle = 30;
+	lightMotor.write(angle);
 
 	delay(5000);
 	//you can take this out if you want, but it helps make sure the
@@ -60,24 +62,26 @@ void setup(){
 void turnOn(){
 	lightOn = true;
 	tempTime = millis();
-	while(angle < 130){
-		if (millis() > (tempTime + 50)){
+	angle = 50;
+	while(angle < 120){
+		//if(millis() > (tempTime + 20)){
 			lightMotor.write(angle);
-			tempTime = millis();
-			angle = angle + 1;
-		}
+		delay(20);//	tempTime = millis();
+			angle ++;
+		//}
 	}
 }
 
 void turnOff(){
 	lightOn = false;
 	tempTime = millis();
-	while(angle > 50){
-		if (millis() > (tempTime + 20)){
+	angle = 120;
+	while(angle > 30){
+		//if(millis() > (tempTime + 20)){
 			lightMotor.write(angle);
-			tempTime = millis();
-			angle = angle - 1;
-		}
+		delay(20);//	tempTime = millis();
+			angle --;
+		//}
 	}
 }
 
@@ -148,6 +152,9 @@ void checkSensors(){
 			waitForA = false;
 			if(millis() < waitTimeA){
 				bodyCount --;
+				if(bodyCount < 0){
+					bodyCount = 0;
+				}
 				Serial.print("bodyCount: ");
 				Serial.println(bodyCount);
 			}
@@ -156,6 +163,16 @@ void checkSensors(){
 	//the bodyCount calculations assume that passing through A
 	//then passing through B means that another person
 	//has entered the room
+
+	if(bodyCount < 1 && lightOn){
+		bodyCount = 0;
+		Serial.println("Turning Off!");
+		turnOff();
+	}
+	else if(!lightOn && bodyCount > 0){
+		Serial.println("Turning On!");
+		turnOn();
+	}
 }
 
 void loop(){
