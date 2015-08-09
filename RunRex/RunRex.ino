@@ -5,10 +5,13 @@ Servo lightMotor;
 boolean triggeredA = false;
 boolean triggeredB = false;
 
-boolean waitForA = true;
-boolean waitForB = true;
-int waitTimeA;
-int waitTimeB;
+boolean waitForA = false;
+boolean waitForB = false;
+int waitTimeA = 0;
+int waitTimeB = 0;
+
+boolean rewaitingA = false;
+boolean rewaitingB = false;
 
 int bodyCount = 0;
 int errorBodyCount = 0;
@@ -42,11 +45,14 @@ void setup(){
 	pinMode(sensorPowerB, OUTPUT);
 	digitalWrite(sensorPowerB, HIGH);
 
+	Serial.println("");
+	Serial.println("Rex is awake...");
+
 	delay(5000);
 	//you can take this out if you want, but it helps make sure the
 	//sensors don't output bad data for the first few seconds
 
-	Serial.print("Rex is Running!");
+	Serial.println("Rex is Running!");
 }
 
 void turnOn(){
@@ -75,11 +81,11 @@ void loop(){
 	if(digitalRead(sensorPinA) == HIGH){
 		if(!triggeredA){
 			triggeredA = true;
+			rewaitingA = false;
 			Serial.print("Start Trigger A: ");
 			Serial.println(millis()/1000);
 		}
 	}
-
 	if(digitalRead(sensorPinA) == LOW){
 		if(triggeredA){
 			triggeredA = false;
@@ -87,15 +93,20 @@ void loop(){
 			Serial.println(millis()/1000);
 		}
 	}
+	if(triggeredA && !triggeredB && !rewaitingB){
+		waitForB = true;
+		waitTimeB = millis() + triggerTimeout;
+	}
+
 
 	if(digitalRead(sensorPinB) == HIGH){
 		if(!triggeredB){
 			triggeredB = true;
+			rewaitingB = false;
 			Serial.print("Start Trigger B: ");
 			Serial.println(millis()/1000);
 		}
 	}
-
 	if(digitalRead(sensorPinB) == LOW){
 		if(triggeredB){
 			triggeredB = false;
@@ -103,34 +114,45 @@ void loop(){
 			Serial.println(millis()/1000);
 		}
 	}
+	if(triggeredB && !triggeredA && !rewaitingA){
+		waitForA = true;
+		waitTimeB = millis() + triggerTimeout;
+	}
 
 
-	if(waitForB && (millis() > waitTimeB)){
+	if(waitForB && (millis() > waitTimeB) && (waitTimeB != 0)){
 		waitForB = false;
+		rewaitingB = false;
 		errorBodyCount ++;
 		Serial.print("ErrorBodyCount: ");
 		Serial.println(errorBodyCount);
 	}
 	if(waitForB && triggeredB){
+		waitForB = false;
+		rewaitingB = true;
 		if(millis() < waitTimeB){
 			bodyCount ++;
 			Serial.print("bodyCount: ");
 			Serial.println(bodyCount);
 		}
 	}
-	if(waitForA && (millis() > waitTimeA)){
+	if(waitForA && (millis() > waitTimeA) && (waitTimeA != 0)){
 		waitForA = false;
+		rewaitingA = false;
 		errorBodyCount ++;
-
 		Serial.print("vars: ");
 		Serial.println(waitForA);
 		Serial.println(waitForB);
 		Serial.println(triggeredA);
 		Serial.println(triggeredB);
+		Serial.println(millis());
+		Serial.println(waitTimeB);
 		Serial.print("ErrorBodyCount: ");
 		Serial.println(errorBodyCount);
 	}
 	if(waitForA && triggeredA){
+		waitForA = false;
+		rewaitingA = true;
 		if(millis() < waitTimeA){
 			bodyCount --;
 			Serial.print("bodyCount: ");
@@ -140,14 +162,4 @@ void loop(){
 	//the bodyCount calculations assume that passing through A
 	//then passing through B means that another person
 	//has entered the room
-
-
-	if(triggeredA && !triggeredB){
-		waitForB = true;
-		waitTimeB = millis() + triggerTimeout;
-	}
-	else if(triggeredB && !triggeredA){
-		waitForA = true;
-		waitTimeB = millis() + triggerTimeout;
-	}
 }
