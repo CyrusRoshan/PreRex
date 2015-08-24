@@ -4,6 +4,7 @@ float vOut = 0;
 
 int i;
 boolean exitNow;
+char lastPushed;
 
 //recorded = [66, 71, 77, 83, 213, 229, 248, 270, 298, 330, 370, 422, 490, 591, 735, 966]
 int values[17] = {64, 69, 75, 80, 190, 221, 240, 260, 285, 315, 350, 396, 456, 541, 666, 850, 1050};
@@ -20,9 +21,16 @@ void loop(){
 	exitNow = false;
 	i = 0;
 	while(exitNow == false){
+		if(raw < 10){
+			exitNow = true;
+			lastPushed = 'none';
+		}
 		if(i<17){
 			if(values[i] <= raw && raw <values[i+1]){
-				Serial.println(keys[i]);
+				if(lastPushed != keys[i]){
+					Serial.println(keys[i]);
+					lastPushed = keys[i];
+				}
 			}
 		}
 		else{
@@ -30,5 +38,5 @@ void loop(){
 		}
 		i++;
 	}
-	delay(100);
+	delay(50);
 }
