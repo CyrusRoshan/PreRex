@@ -2,14 +2,12 @@ int analogPin = 0;
 int raw = 0;
 float vOut = 0;
 
-void setup()
-{
+void setup(){
 	Serial.begin(9600);
 	digitalWrite(13, HIGH);
 }
 
-void loop()
-{
+void loop(){
 	raw = analogRead(analogPin);
 	Serial.print("Voltage: ");
 	Serial.println(vOut);
