@@ -18,6 +18,7 @@ void setup(){
 void loop(){
 	raw = analogRead(analogPin);
 	exit = false;
+	i = 0;
 	while(exit === false){
 		if(i<17){
 			if(values[i]<=raw<values[i+1]){
